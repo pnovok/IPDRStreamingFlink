@@ -109,7 +109,7 @@ public class StreamingJob {
 //convert fromTime field to Date and extract hour of the day
 //group by MacAddr and Hour,
 //apply Windowing fucntion, I'm using a Tumbling Window with the specified window size in minutes, it can be set to hours or days
-//then aggregate dsOctets to get ussage.
+//then aggregate dsOctets to get usage.
 		DataStream<OutputUsageMessages> usageIPDRStream = dataFilteredIPDRStream.map(new MapFunction<IPDRMessages, OutputUsageMessages>()
 		{
 			@Override
@@ -136,16 +136,17 @@ public class StreamingJob {
 						}
 		)
 		//.window(SlidingProcessingTimeWindows.of(Time.seconds(600), Time.seconds(60)))
-		//Tumbling Window function with a certain size, seconds, minutes, hours, days
+		//Tumbling Window function with a certain size: milliseconds, seconds, minutes, hours, days
 		.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		//.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
 		//Reduce Operator to aggregate Usage data
 		.reduce( new UsageAggregator())
 		;
 
 		
 		//Handle the output of IPDR Stream and route it to stdout
-		System.out.println("Printing the filtered IPDR usage output stream to stdout...");
-		usageIPDRStream.print();
+		//System.out.println("Printing the filtered IPDR usage output stream to stdout...");
+		//usageIPDRStream.print();
 
 
 		//Handle the output of IPDR Stream and route it to another Kafka queue

@@ -8,7 +8,7 @@
 5) Apply a Tumbling Window function with a certain Window size. Window size is defined in minutes. It could be changed to milliseconds, seconds, hours or days. [More on Flink Window functions:](
    https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/windows/)
 6) Apply Aggregator and sum dsOctets to calculate usage
-7) Route IPDR output usage messages to Stdout, local FileSystem (or HDFS) and a Kafka queue sinks.
+7) Route IPDR output usage messages to the local FileSystem (or HDFS) and a Kafka queue sink.
 
 ## Usage on Secured SASL_SSL (Kerberos) Cluster:
 
