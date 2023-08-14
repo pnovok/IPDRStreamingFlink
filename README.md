@@ -1,4 +1,4 @@
-#IPDR Hourly RollUp Example with Flink DataStream API 
+# IPDR Hourly RollUp Example with Flink DataStream API 
 
 ## Main logic:
 1) Read IPDR messages as an input stream from the Kafka queue, deserialize JSON to POJO
