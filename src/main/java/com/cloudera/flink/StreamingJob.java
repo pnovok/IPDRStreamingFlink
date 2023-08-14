@@ -78,7 +78,7 @@ public class StreamingJob {
 			}
 		});
 
-	/*		This is Test only code to validate certain Flink functionality */
+/*		This is Test only code to validate certain Flink functionality */
 
 //		Applying a Map operator to transform the stream and get just MacAddr and DsOctets
 //		DataStream<String>CmMacAddrIPDRStream = dataFilteredIPDRStream.map(new MapFunction<IPDRMessages, String>() {
@@ -88,9 +88,9 @@ public class StreamingJob {
 //			}
 //		});
 
-		//Applying a Map operator to transform the stream to get just MacAddr and DsOctets as a Tuple2 data type,
-		// then group the stream by MacAddr
-		// then aggregate dsOctets
+//		Applying a Map operator to transform the stream to get just MacAddr and DsOctets as a Tuple2 data type,
+// 		then group the stream by MacAddr
+// 		then aggregate dsOctets
 //		DataStream<Tuple2<String, Integer>> usageIPDRStream = dataFilteredIPDRStream.map(new MapFunction<IPDRMessages, Tuple2<String, Integer>>() {
 //			@Override
 //			public Tuple2<String, Integer> map(IPDRMessages ipdrMessages) throws Exception {
@@ -103,13 +103,13 @@ public class StreamingJob {
 //				.window(TumblingProcessingTimeWindows.of(Time.seconds(5)))
 //				.reduce(new SummingReducer()); //Aggregate DsOctets;
 
-	/*		End of Test only code  */
+/*		End of Test only code  */
 
-		//Apply a Map operator to transform the already filtered stream to get an object with HourlyUsageMessages structure,
-		//convert fromTime field to Date and extract hour of the day
-		//group by MacAddr and Hour,
-		//apply Windowing fucntion, I'm using a Tumbling Window with the specified window size in minutes, it can be set to hours or days
-		//then aggregate dsOctets to get ussage.
+//Apply a Map operator to transform the already filtered stream to get an object with HourlyUsageMessages structure,
+//convert fromTime field to Date and extract hour of the day
+//group by MacAddr and Hour,
+//apply Windowing fucntion, I'm using a Tumbling Window with the specified window size in minutes, it can be set to hours or days
+//then aggregate dsOctets to get ussage.
 		DataStream<OutputUsageMessages> usageIPDRStream = dataFilteredIPDRStream.map(new MapFunction<IPDRMessages, OutputUsageMessages>()
 		{
 			@Override
@@ -158,7 +158,7 @@ public class StreamingJob {
 		env.execute("IPDR Streaming Flink Job");
 	}
 
-	//Run Basic Flink Test and sink to file system
+//Run Basic Flink Test and sink to file system
 //	private static void runBasicTest(ParameterTool params, StreamExecutionEnvironment env) {
 //		//Test Basic Flink Functionality
 //		DataStream<String> ds = env.fromElements("Hello World!", "Hello Flink","Life is Good!");
@@ -178,10 +178,10 @@ public class StreamingJob {
 //
 //	}
 
-	//This method will read input IPDR messages from the Kafka queue
+//This method will read input IPDR messages from the Kafka queue
 	public static DataStream<IPDRMessages> readIPDRStream(ParameterTool params, StreamExecutionEnvironment env) {
 
-		  // We read the IPDR Stream objects directly from the Kafka source using the schema
+// We read the IPDR Stream objects directly from the Kafka source using the schema
 		  String topic = params.getRequired(IPDR_INPUT_TOPIC);
 		  System.out.println("Input topic is: "+topic);
 
@@ -194,17 +194,17 @@ public class StreamingJob {
 				  .build();
 
 
-		  // In case event time processing is enabled we assign trailing watermarks for each partition
-		//  return env.fromSource(IPDRSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
+// In case event time processing is enabled we assign trailing watermarks for each partition
+//  return env.fromSource(IPDRSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
 
 		return env.fromSource(IPDRSource, WatermarkStrategy.noWatermarks(), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
 
 	  }
 
-	  //Write the output usage IPDR Stream to the File System
+//Write the output usage IPDR Stream to the File System
 	  public static void writeIPDRStreamKafka(ParameterTool params, DataStream<OutputUsageMessages> IPDRResultStream) {
 
-		// IPDR stream output is written back to kafka in a tab delimited format for readability
+// IPDR stream output is written back to kafka in a tab delimited format for readability
 		String topic = params.getRequired(IPDR_OUTPUT_TOPIC);
 		KafkaSink<OutputUsageMessages> IPDROutputSink = KafkaSink.<OutputUsageMessages>builder()
 				.setBootstrapServers(params.get(KAFKA_BOOTSTRAP_SERVERS))
@@ -221,7 +221,7 @@ public class StreamingJob {
 				.uid("kafka-query-result-sink");
 	}
 
-	//Write the output usage IPDR Stream to a Filesystem or HDFS on the cluster
+//Write the output usage IPDR Stream to a Filesystem or HDFS on the cluster
 	private static void writeIPDRStreamFileSystem(ParameterTool params, DataStream<OutputUsageMessages> IPDRResultStream) {
 		String basePath = params.get(FS_OUTPUT,"file:///tmp/ipdr");
 

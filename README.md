@@ -5,9 +5,9 @@
 2) Filter the input stream based on dsScn service type as "data"
 3) Apply the Map function and build a new output usage message. Convert fromDate field from String to Date and extract Hour
 4) Apply the keyBy operator and group by MacAddr and Hour
-5) Apply a Tumbling Window function with a certain Window size. Window size is defined in minutes. It could be changed to hours, days. More on Flink Window functions:
-   https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/windows/
-6) Apply Aggregator and sum dsOctets usage
+5) Apply a Tumbling Window function with a certain Window size. Window size is defined in minutes. It could be changed to hours, days. [More on Flink Window functions:](
+   https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/windows/)
+6) Apply Aggregator and sum dsOctets to calculate usage
 7) Route IPDR output usage messages to Stdout, local FileSystem (or HDFS) and a Kafka queue sinks.
 
 ## Usage on Secured SASL_SSL (Kerberos) Cluster:
