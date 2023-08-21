@@ -137,16 +137,16 @@ public class StreamingJob {
 		)
 		//.window(SlidingProcessingTimeWindows.of(Time.seconds(600), Time.seconds(60)))
 		//Tumbling Window function with a certain size: milliseconds, seconds, minutes, hours, days
-		.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
-		//.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		//.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
 		//Reduce Operator to aggregate Usage data
 		.reduce( new UsageAggregator())
 		;
 
 		
 		//Handle the output of IPDR Stream and route it to stdout
-		//System.out.println("Printing the filtered IPDR usage output stream to stdout...");
-		//usageIPDRStream.print();
+		System.out.println("Printing the filtered IPDR usage output stream to stdout...");
+		usageIPDRStream.print();
 
 
 		//Handle the output of IPDR Stream and route it to another Kafka queue

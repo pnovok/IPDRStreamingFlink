@@ -21,6 +21,12 @@ To run the command on secured cluster:
 flink run -yD security.kerberos.login.keytab=<keytab file> -yD security.kerberos.login.principal=<principal_name> -d -p 1 -ys 2 -ynm StreamingIPDRJob target/IPDRStreamingFlink.jar config/job.properties
 ```
 
+To fully control the resource utilization of the Flink job, we set the following CLI parameters:
+
+-p 8: Parallelism of your pipeline. Controls the number of parallel instances of each operator.
+-ys 4: Number of task slots in each TaskManager. It also determines the number of TaskManagers as the result of dividing the parallelism by the number of task slots.
+-ytm 1500: TaskManager container memory size that ultimately defines how much memory can be used for heap, network buffers and local state management.
+
 Note: This was tested on CDP Public Cloud Data Hub cluster. 
 
 ## Usage on Unsecured Cluster:
