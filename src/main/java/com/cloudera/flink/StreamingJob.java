@@ -145,8 +145,8 @@ public class StreamingJob {
 
 		
 		//Handle the output of IPDR Stream and route it to stdout
-		System.out.println("Printing the filtered IPDR usage output stream to stdout...");
-		usageIPDRStream.print();
+		//System.out.println("Printing the filtered IPDR usage output stream to stdout...");
+		//usageIPDRStream.print();
 
 
 		//Handle the output of IPDR Stream and route it to another Kafka queue
