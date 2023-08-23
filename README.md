@@ -5,7 +5,7 @@
 2) Filter the input stream based on dsScn service type as "data"
 3) Apply the Map function and build a new output usage message. Convert fromDate field from String to Date and extract Hour
 4) Apply the keyBy operator and group by MacAddr and Hour
-5) Apply a Tumbling Window function with a certain Window size. Window size is defined in minutes. It could be changed to milliseconds, seconds, hours or days. 
+5) Apply a Tumbling Window function with a certain Window size. Window size is defined in hours. It could be changed to milliseconds, seconds, minutes or days. 
    More info on Flink Window functions is available [here](
    https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/windows/)
 6) Apply Aggregator and sum dsOctets to calculate usage for each given MacAddr and Hour.
