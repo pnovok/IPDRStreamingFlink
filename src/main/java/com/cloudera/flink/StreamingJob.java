@@ -38,21 +38,25 @@ import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class StreamingJob {
 
 	public static final String IPDR_INPUT_TOPIC = "ipdr.input.topic";
 	public static final String IPDR_OUTPUT_TOPIC = "ipdr.output.topic";
 	public static final String KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers";
-	public static final String TUMBLING_WINDOW_SIZE = "window_size";
+	public static final String TUMBLING_WINDOW_SIZE = "window.size";
 	public static final String FS_OUTPUT = "fsysOutput";
+	public static final String CHECKPOINT_INTERVAL = "checkpoint.interval.millis";
 
 	public static void main(String[] args) throws Exception {
 
@@ -63,6 +67,18 @@ public class StreamingJob {
 		ParameterTool params = ParameterTool.fromPropertiesFile(args[0]);
 
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+		// Configure checkpointing if interval is set
+		long cpInterval = params.getLong(CHECKPOINT_INTERVAL, TimeUnit.MINUTES.toMillis(1));
+		if (cpInterval > 0) {
+			CheckpointConfig checkpointConf = env.getCheckpointConfig();
+			checkpointConf.setCheckpointInterval(cpInterval);
+			checkpointConf.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+			checkpointConf.setCheckpointTimeout(TimeUnit.HOURS.toMillis(1));
+			checkpointConf.setExternalizedCheckpointCleanup(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+			//checkpointConf.setCheckpointStorage("hdfs:///user/flink/ipdr_usage/checkpoints");
+			env.getConfig().setUseSnapshotCompression(true);
+		}
 
 		//Basic Flink test
 		//runBasicTest(params,env);
