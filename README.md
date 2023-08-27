@@ -85,3 +85,50 @@ IPDR data, Flink Map task utilization reached only 4%.
 "usage":808697
 }
 ```
+## Manually Restarting IPDR Job from checkpoint
+
+Checkpoints make state in Flink fault tolerant by allowing state and the corresponding stream positions to be recovered, thereby giving 
+the application the same semantics as a failure-free execution. The primary purpose of checkpoints is to provide a recovery mechanism 
+in case of unexpected job failures. A checkpoint’s lifecycle is managed by Flink, i.e. a checkpoint is created, owned, and released 
+by Flink - without user interaction. Savepoints are created, owned and deleted solely by the user.
+
+To demo Flink application restart from checkpoint I created 2 empty Kafka topics: **ipdr_input** and **ipdr_output** and started a Flink job
+with the size of a Tumbling Window of 5 minutes and a checkpoint interval of 30 seconds.
+
+```
+flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob target/IPDRStreamingFlink.jar config/job.properties
+```
+
+Then I ran IPDR data generator 3 times and inserted a total of 30 messages as shown on the Flink UI below.
+
+```
+java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 10  1000 0
+```
+
+![img_2.png](img_2.png)
+
+I waited for the next checkpoint to occur and captured the checkpoint path from the Flink UI below. Then I cancelled the Flink job.
+
+![img_3.png](img_3.png)
+
+With no Flink job running I ran the IPDR data generator 2 more times adding another 20 messages into the ipdr_input Kafka topic.
+
+After that I restart a Flink job from the last checkpoint as show in the command below.
+
+```
+flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob -s hdfs:/user/flink/checkpoints/51323f74caa3b2cddf432156188dcb27/chk-4  target/IPDRStreamingFlink.jar config/job.properties
+```
+
+Once the Flink job restarted, I observed 20 messages processed which came through when Flink application was down.
+
+![img_4.png](img_4.png)
+
+I ran IPDR data generator one more time and added 10 more messages in the ipdr_input Kafka topic. This was also reflected in the Flink UI.
+
+![img_5.png](img_5.png)
+
+Once the Tumbling Window expired I've got 60 IPDR messages processed and aggregation results written into  ipdr_output topic.
+
+![img_6.png](img_6.png)
+
+As was demonstrated in this test, Flink recovers from faults by rewinding and replaying the source data streams.
