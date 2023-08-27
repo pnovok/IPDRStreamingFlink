@@ -1,6 +1,6 @@
 # IPDR Hourly/Daily RollUp Example with Flink DataStream API 
 
-## Main logic:
+## Main logic
 1) Read IPDR messages as an input stream from the Kafka queue, deserialize JSON to POJO
 2) Filter the input stream based on dsScn service type as "data"
 3) Apply the Map function and build a new output usage message. Convert fromDate field from String to Date and extract Hour
@@ -132,3 +132,34 @@ Once the Tumbling Window expired I've got 60 IPDR messages processed and aggrega
 ![img_6.png](img_6.png)
 
 As was demonstrated in this test, Flink recovers from faults by rewinding and replaying the source data streams.
+
+## Automatically Restarting IPDR Job from checkpoint
+
+Similar to the previous test I created 2 empty Kafka topics: **ipdr_input** and **ipdr_output** and started a Flink job
+with the size of a Tumbling Window of 5 minutes and a checkpoint interval of 30 seconds.
+
+Flink Task manager was running on node #5 as shown on the Flink UI below.
+
+![img_7.png](img_7.png)
+
+I ran IPDR data generator and inserted 10 IPDR messages, at the same time identifying and killing Flink's Task Manager processes 
+on node #5
+
+![img_11.png](img_11.png)
+
+Flink Web UI briefly highlighted running processors in red and restarted the Task Manager on node #3.
+
+![img_12.png](img_12.png)
+
+![img_9.png](img_9.png)
+
+I ran IPDR data generator again insterting 10 messages and killing Task Manager on node #3. This time Task Manager restarted 
+on the same node #3
+
+![img_10.png](img_10.png)
+
+I ran IPDR data generator 2 more times and observed the aggregation results in the **ipdr_output** topic upon a Tumbling Window
+expiration. All 4 IPDR runs aggregated successfully despite Task Manager restarts.
+
+![img_13.png](img_13.png)
+

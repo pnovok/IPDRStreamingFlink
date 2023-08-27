@@ -54,7 +54,7 @@ public class StreamingJob {
 	public static final String IPDR_INPUT_TOPIC = "ipdr.input.topic";
 	public static final String IPDR_OUTPUT_TOPIC = "ipdr.output.topic";
 	public static final String KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers";
-	public static final String TUMBLING_WINDOW_SIZE = "window.size";
+	public static final String TUMBLING_WINDOW_SIZE = "window.size.min";
 	public static final String FS_OUTPUT = "fsysOutput";
 	public static final String CHECKPOINT_INTERVAL = "checkpoint.interval.millis";
 
@@ -153,8 +153,8 @@ public class StreamingJob {
 		)
 		//.window(SlidingProcessingTimeWindows.of(Time.seconds(600), Time.seconds(60)))
 		//Tumbling Window function with a certain size: milliseconds, seconds, minutes, hours, days
-		//.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
-		.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		//.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
 		//Reduce Operator to aggregate Usage data
 		.reduce( new UsageAggregator())
 		;
@@ -168,7 +168,7 @@ public class StreamingJob {
 		//Handle the output of IPDR Stream and route it to another Kafka queue
 		writeIPDRStreamKafka(params, usageIPDRStream);
 
-		//Handle the output of IPDR Stream and route it to File System
+		//Handle the output of IPDR Stream and route it to File System (HDFS)
 		writeIPDRStreamFileSystem(params, usageIPDRStream);
 
 
