@@ -99,7 +99,7 @@ started with the size of a Tumbling Window of 5 minutes and a checkpoint interva
 flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob target/IPDRStreamingFlink.jar config/job.properties
 ```
 
-Then IPDR data generator ran 3 times and inserted a total of 30 messages as shown on the Flink UI below.
+Then IPDR data generator ran 3 times and inserted a total of 30 messages, as shown on the Flink UI below.
 
 ```
 java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 10  1000 0
@@ -111,15 +111,15 @@ Once the next checkpoint occured, the checkpoint path was captured from the Flin
 
 ![img_3.png](img_3.png)
 
-With no Flink job running IPDR data generator ran 2 more times adding another 20 messages into the **ipdr_input** Kafka topic.
+With no Flink job running, IPDR data generator ran 2 more times adding another 20 messages into the **ipdr_input** Kafka topic.
 
-Then a Flink job was restarted from the last checkpoint as shown in the command below.
+Then a Flink job was restarted from the last checkpoint, as shown in the command below.
 
 ```
 flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob -s hdfs:/user/flink/checkpoints/51323f74caa3b2cddf432156188dcb27/chk-4  target/IPDRStreamingFlink.jar config/job.properties
 ```
 
-Once the Flink job restarted, it was observed in UI that 20 messages were processed. Those messages came through when Flink application 
+Once the Flink job restarted, it was observed in Flink UI that 20 messages have been processed. Those messages came through when Flink application 
 was down.
 
 ![img_4.png](img_4.png)
@@ -128,7 +128,7 @@ IPDR data generator ran one more time and added 10 more messages in the **ipdr_i
 
 ![img_5.png](img_5.png)
 
-Once the Tumbling Window expired a total of 60 IPDR messages were processed and aggregation results written into  **ipdr_output** topic.
+Once the Tumbling Window expired, a total of 60 IPDR messages have been processed and aggregation results written into  **ipdr_output** topic.
 
 ![img_6.png](img_6.png)
 
@@ -136,19 +136,19 @@ As was demonstrated in this test, Flink recovers from faults by rewinding and re
 
 ## Automatically Restarting IPDR Job from checkpoint
 
-Similar to the previous test 2 empty Kafka topics: **ipdr_input** and **ipdr_output** were created and started a Flink job
+Similar to the previous test, 2 empty Kafka topics: **ipdr_input** and **ipdr_output** were created and a Flink job started
 with the size of a Tumbling Window of 5 minutes and a checkpoint interval of 30 seconds.
 
-Flink Task manager was running on node #5 as shown on the Flink UI below.
+Flink Task manager was running on node #5, as shown on the Flink UI below.
 
 ![img_7.png](img_7.png)
 
-IPDR data generator ran and inserted 10 IPDR messages while at the same time Flink's Task Manager processes were identified and 
+IPDR data generator ran and inserted 10 IPDR messages while at the same time Flink's Task Manager processes have been identified and 
 killed on node #5 of the cluster.
 
 ![img_11.png](img_11.png)
 
-Flink Web UI briefly highlighted running processors in red and restarted the Task Manager on node #3.
+Flink Web UI briefly highlighted running processors in red and the Task Manager restarted on node #3.
 
 ![img_12.png](img_12.png)
 
@@ -159,7 +159,7 @@ on the same node #3.
 
 ![img_10.png](img_10.png)
 
-IPDR data generator ran 2 more times and aggregation results were recorded in the target **ipdr_output** topic upon a Tumbling Window
+IPDR data generator ran 2 more times and aggregation results have been written in the target **ipdr_output** topic upon a Tumbling Window
 expiration. All 4 IPDR runs aggregated successfully despite several Task Manager restarts.
 
 ![img_13.png](img_13.png)
