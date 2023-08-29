@@ -38,12 +38,20 @@ To fully control the resource utilization of the Flink job, we set the following
 
 ## Running a Load Test on a 6-node Flink/Kafka cluster
 
-I ran a load test of this code processing data from 50,000 distinct Mac addresses coming over the past 2 hours. With 5 concurrent processes generating
-IPDR data, Flink Map task utilization reached only 4%. 
+A load test of this code processed data from 500,000 distinct Mac addresses with the Tumbling Window of 1 hour and a checkpoint interval of 60 seconds. With 5 concurrent processes generating
+100,000 IPDR messages, Flink Map task utilization reached only 4%-5%. It took about 15-16 min to push 500,000 IPDR messages through Flink. At total of 1.5M IPDR messages have been aggregated.
 
-![img.png](img.png)
+```
+#Load 500,000 IPDR messages to a topic with 0 sec sleep time
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 0   > load1.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 100000   > load2.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 200000   > load3.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 300000   > load4.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 400000   > load5.out 2>&1  &
+```
 
-![img_1.png](img_1.png)
+![img_14.png](img_14.png)
+
 
 ## Sample IPDR input Message Format:
 
@@ -164,3 +172,20 @@ expiration. All 4 IPDR runs aggregated successfully despite several Task Manager
 
 ![img_13.png](img_13.png)
 
+## Restarting IPDR Job from checkpoint during a Load Test
+
+Restarting Task Manager 2 times during a Load Test with loading 500,000 IPDR messages with distinct mac addresses produced correct aggregation results. Exception
+errors caused by Task Manager restarts on nodes #1 and #3 are shown in screenshot below.
+
+![img_15.png](img_15.png)
+
+Checkpoint stats during a Load Test during a Load Test are shown below.
+
+![img_16.png](img_16.png)
+
+Input and output Kafka topics stats are presented below. A total of 3 iterations of IPDR loads with 500,000 messages each ran over an hour which resulted
+in 1.5M messages in **ipdr_input** and 500K (aggregation) in **ipdr_output**.
+
+![img_17.png](img_17.png)
+
+![img_18.png](img_18.png)
