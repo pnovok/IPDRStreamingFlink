@@ -36,7 +36,7 @@ To fully control the resource utilization of the Flink job, we set the following
 -ytm 1500: TaskManager container memory size that ultimately defines how much memory can be used for heap, network buffers and local state management.
 ```
 
-## Running a Load Test on a 6-node Flink/Kafka cluster
+## Running a Load Test on a 6-node Flink/Kafka cluster with 500,000 IPDR messages
 
 A load test of this code processed data from 500,000 distinct Mac addresses with the Tumbling Window of 1 hour and a checkpoint interval of 60 seconds. With 5 concurrent processes generating
 100,000 IPDR messages, Flink Map task utilization reached only 4%-5%. It took about 15-16 min to push 500,000 IPDR messages through Flink. At total of 1.5M IPDR messages have been aggregated.
@@ -189,3 +189,32 @@ in 1.5M messages in **ipdr_input** and 500K (aggregation) in **ipdr_output**.
 ![img_17.png](img_17.png)
 
 ![img_18.png](img_18.png)
+
+## Volume Test with 10,000,000 IPDR messages
+
+It took about **2 min** to process **10M** IPDR messages. CPU Usage reached 100% on the source task manager. Writing results to the ipdr_output table 9M+ aggregated messages took less than 1M.
+
+```
+flink run -d -p 5 -ys 1 -ytm 3000 -ynm StreamingJob target/IPDRStreamingFlink.jar config/job.properties
+```
+
+![img_19.png](img_19.png)
+
+![img_20.png](img_20.png)
+
+
+## Volume Test with 20,000,000 IPDR messages
+
+It took about **4.5 min** to process **20M** IPDR messages. CPU Usage reached 100% on the task managers.
+
+```
+flink run -d -p 5 -ys 1 -ytm 3000 -ynm StreamingJob target/IPDRStreamingFlink.jar config/job.properties
+```
+![img_23.png](img_23.png)
+
+![img_21.png](img_21.png)
+
+Aggregation results forwarded to HDFS sink
+
+![img_22.png](img_22.png)
+

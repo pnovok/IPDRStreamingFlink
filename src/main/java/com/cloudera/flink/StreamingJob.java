@@ -42,10 +42,11 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
@@ -68,6 +69,7 @@ public class StreamingJob {
 
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+
 		// Configure checkpointing if interval is set
 		long cpInterval = params.getLong(CHECKPOINT_INTERVAL, TimeUnit.MINUTES.toMillis(1));
 		if (cpInterval > 0) {
@@ -79,6 +81,7 @@ public class StreamingJob {
 			//checkpointConf.setCheckpointStorage("hdfs:///user/flink/ipdr_usage/checkpoints");
 			env.getConfig().setUseSnapshotCompression(true);
 		}
+
 
 		//Basic Flink test
 		//runBasicTest(params,env);
@@ -126,15 +129,21 @@ public class StreamingJob {
 //group by MacAddr and Hour,
 //apply Windowing fucntion, I'm using a Tumbling Window with the specified window size in minutes, it can be set to hours or days
 //then aggregate dsOctets to get usage.
-		DataStream<OutputUsageMessages> usageIPDRStream = dataFilteredIPDRStream.map(new MapFunction<IPDRMessages, OutputUsageMessages>()
+		DataStream<OutputUsageMessages> usageIPDRStream = dataFilteredIPDRStream
+				.map(new MapFunction<IPDRMessages, OutputUsageMessages>()
 		{
 			@Override
 			public OutputUsageMessages map(IPDRMessages ipdrMessages) throws Exception {
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(ipdrMessages.getFromTime()));
-				int fromHour = calendar.get(Calendar.HOUR_OF_DAY);
+				calendar.set(Calendar.MINUTE, 0);
+				calendar.set(Calendar.SECOND, 0);
+				//A date cut by the hour
+				String fromHour = calendar.getTime().toString();
+
 				return new OutputUsageMessages(
 						//ipdrMessages.getFromTime(),
+						//fromHour,
 						fromHour,
 						ipdrMessages.getCmtsHostName(),
 						ipdrMessages.getDsScn(),
@@ -144,25 +153,27 @@ public class StreamingJob {
 		})
 		//Group by MacAddr and Hour
 		.keyBy (
-						new KeySelector<OutputUsageMessages, Tuple2<String, Integer>>() {
+						new KeySelector<OutputUsageMessages, Tuple2<String, String>>() {
 							@Override
-							public Tuple2<String, Integer> getKey(OutputUsageMessages value) throws Exception {
+							public Tuple2<String, String> getKey(OutputUsageMessages value) throws Exception {
 								return Tuple2.of(value.getMac(), value.getHourUsage());
 							}
 						}
 		)
+		//Sliding Window function based on Processing time
 		//.window(SlidingProcessingTimeWindows.of(Time.seconds(600), Time.seconds(60)))
-		//Tumbling Window function with a certain size: milliseconds, seconds, minutes, hours, days
-		.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
-		//.window(TumblingProcessingTimeWindows.of(Time.hours(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		//Tumbling Window function based on Processing time with a certain window size: milliseconds, seconds, minutes, hours, days
+		//.window(TumblingProcessingTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
+		//Tumbling Window function based on Event time (Kafka timestamp) with a certain window size: milliseconds, seconds, minutes, hours, days
+		.window(TumblingEventTimeWindows.of(Time.minutes(Long.parseLong(params.get(TUMBLING_WINDOW_SIZE)))))
 		//Reduce Operator to aggregate Usage data
 		.reduce( new UsageAggregator())
 		;
 
 		
 		//Handle the output of IPDR Stream and route it to stdout
-		//System.out.println("Printing the filtered IPDR usage output stream to stdout...");
-		//usageIPDRStream.print();
+	//	System.out.println("Printing the filtered IPDR usage output stream to stdout...");
+	//	usageIPDRStream.print();
 
 
 		//Handle the output of IPDR Stream and route it to another Kafka queue
@@ -195,10 +206,10 @@ public class StreamingJob {
 //
 //	}
 
-//This method will read input IPDR messages from the Kafka queue
+	//This method will read input IPDR messages from the Kafka queue
 	public static DataStream<IPDRMessages> readIPDRStream(ParameterTool params, StreamExecutionEnvironment env) {
 
-// We read the IPDR Stream objects directly from the Kafka source using the schema
+	// We read the IPDR Stream objects directly from the Kafka source using the schema
 		  String topic = params.getRequired(IPDR_INPUT_TOPIC);
 		  System.out.println("Input topic is: "+topic);
 
@@ -211,10 +222,11 @@ public class StreamingJob {
 				  .build();
 
 
-// In case event time processing is enabled we assign trailing watermarks for each partition
-//  return env.fromSource(IPDRSource, WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
+	// In case event time processing is enabled we assign trailing watermarks for each partition
+	    return env.fromSource(IPDRSource, WatermarkStrategy.<IPDRMessages>forBoundedOutOfOrderness(Duration.ofSeconds(3)).withIdleness(Duration.ofSeconds(3)), "Kafka IPDR Stream Source");
 
-		return env.fromSource(IPDRSource, WatermarkStrategy.noWatermarks(), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
+	// In case of processing time we don't need watermark strategy
+	//	return env.fromSource(IPDRSource, WatermarkStrategy.noWatermarks(), "Kafka IPDR Stream Source").uid("kafka-ipdr-source");
 
 	  }
 

@@ -4,17 +4,17 @@ package com.cloudera.flink.model;
 import java.util.Objects;
 
 public class OutputUsageMessages {
-	public int hourUsage;
+	public String hourUsage;
 	public String cmtshost;
 	public String scn;
 	public String mac;
 	public long usage;
 
-	public int getHourUsage() {
+	public String getHourUsage() {
 		return hourUsage;
 	}
 
-	public void setHourUsage(int hourUsage) {
+	public void setHourUsage(String hourUsage) {
 		this.hourUsage = hourUsage;
 	}
 
@@ -51,7 +51,7 @@ public class OutputUsageMessages {
 	}
 
 	public OutputUsageMessages() { }
-	public OutputUsageMessages(int time, String cmtshost, String scn, String mac, long usage) {
+	public OutputUsageMessages(String time, String cmtshost, String scn, String mac, long usage) {
 		this.hourUsage = time;
 		this.cmtshost = cmtshost;
 		this.scn = scn;
