@@ -1,5 +1,16 @@
 # IPDR Hourly/Daily RollUp Example with Flink DataStream API 
 
+## Table of contents
+1. [Main logic](#main-logic)
+2. [Usage on Secured Cluster](#usage-on-secured--cluster)
+3. [Usage on Unsecured Cluster](#usage-on-unsecured-cluster)
+4. [Sample IPDR input and output Message Format](#sample-ipdr-input-and-output-message-format)   
+5. [Running a Load Test on a 6-node Flink/Kafka cluster with 500,000 IPDR messages](#running-a-load-test-on-a-6-node-flinkkafka-cluster-with-500000-ipdr-messages)
+6. [Manually Restarting IPDR Job from checkpoint](#manually-restarting-ipdr-job-from-checkpoint)
+7. [Automatically Restarting IPDR Job from checkpoint by simulating a TaskManager failure](#automatically-restarting-ipdr-job-from-checkpoint-by-simulating-a-taskmanager-failure)
+8. [Volume Tests Summary Results with 10M, 20M, 30M, 40M and 50M IPDR input messages](#volume-tests-summary-results-with-10m-20m-30m-40m-and-50m-ipdr-input-messages)
+9. [Testing with EventTime instead of ProcessingTime](#testing-with-eventtime-instead-of-processingtime)
+
 ## Main logic
 1) Read IPDR messages as an input stream from the Kafka queue, deserialize JSON to POJO
 2) Filter the input stream based on dsScn service type as "data"
@@ -13,9 +24,9 @@
 
 Job configuration parameters are specified in the job.properties file.
 
-## Usage on Secured SASL_SSL (Kerberos) Cluster:
+## Usage on Secured  Cluster
 
-To run the command on secured cluster:
+To run the command on secured SASL_SSL (Kerberos) cluster:
 
 ```
 flink run -yD security.kerberos.login.keytab=<keytab file> -yD security.kerberos.login.principal=<principal_name> -d -p 1 -ys 2 -ynm StreamingIPDRJob target/IPDRStreamingFlink.jar config/job.properties
@@ -23,7 +34,7 @@ flink run -yD security.kerberos.login.keytab=<keytab file> -yD security.kerberos
 
 Note: This was tested on CDP Public Cloud Data Hub cluster. 
 
-## Usage on Unsecured Cluster:
+## Usage on Unsecured Cluster
 
 ```
 flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob target/IPDRStreamingFlink.jar config/job.properties
@@ -36,24 +47,9 @@ To fully control the resource utilization of the Flink job, we set the following
 -ytm 1500: TaskManager container memory size that ultimately defines how much memory can be used for heap, network buffers and local state management.
 ```
 
-## Running a Load Test on a 6-node Flink/Kafka cluster with 500,000 IPDR messages
+## Sample IPDR input and output Message Format
 
-A load test of this code processed data from 500,000 distinct Mac addresses with the Tumbling Window of 1 hour and a checkpoint interval of 60 seconds. With 5 concurrent processes generating
-100,000 IPDR messages, Flink Map task utilization reached only 4%-5%. It took about 15-16 min to push 500,000 IPDR messages through Flink. At total of 1.5M IPDR messages have been aggregated.
-
-```
-#Load 500,000 IPDR messages to a topic with 0 sec sleep time
-/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 0   > load1.out 2>&1  &
-/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 100000   > load2.out 2>&1  &
-/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 200000   > load3.out 2>&1  &
-/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 300000   > load4.out 2>&1  &
-/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 400000   > load5.out 2>&1  &
-```
-
-![img_14.png](snapshots/img_14.png)
-
-
-## Sample IPDR input Message Format:
+Sample IPDR Usage Input Format:
 
 ```
 {"batchId":"103.65.107.58",
@@ -82,7 +78,7 @@ A load test of this code processed data from 500,000 distinct Mac addresses with
 "usTimeActive":21239,
 "v":2}
 ```
-## Sample IPDR Usage Output Format:
+Sample IPDR Usage Output Format:
 
 ```
 {
@@ -93,6 +89,25 @@ A load test of this code processed data from 500,000 distinct Mac addresses with
 "usage":808697
 }
 ```
+
+## Running a Load Test on a 6-node Flink/Kafka cluster with 500,000 IPDR messages
+
+A load test of this code processed data from 500,000 distinct Mac addresses with the Tumbling Window of 1 hour and a checkpoint interval of 60 seconds. With 5 concurrent processes generating
+100,000 IPDR messages, Flink Map task utilization reached only 4%-5%. It took about 15-16 min to push 500,000 IPDR messages through Flink. At total of 1.5M IPDR messages have been aggregated.
+
+```
+#Load 500,000 IPDR messages to a topic with 0 sec sleep time
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 0   > load1.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 100000   > load2.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 200000   > load3.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 300000   > load4.out 2>&1  &
+/usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 400000   > load5.out 2>&1  &
+```
+
+![img_14.png](snapshots/img_14.png)
+
+
+
 ## Manually Restarting IPDR Job from checkpoint
 
 Checkpoints make state in Flink fault tolerant by allowing state and the corresponding stream positions to be recovered, thereby giving 
@@ -142,7 +157,7 @@ Once the Tumbling Window expired, a total of 60 IPDR messages have been processe
 
 As was demonstrated in this test, Flink recovers from faults by rewinding and replaying the source data streams.
 
-## Automatically Restarting IPDR Job from checkpoint
+## Automatically Restarting IPDR Job from checkpoint by simulating a TaskManager failure
 
 Similar to the previous test, 2 empty Kafka topics: **ipdr_input** and **ipdr_output** were created and a Flink job started
 with the size of a Tumbling Window of 5 minutes and a checkpoint interval of 30 seconds.
@@ -190,7 +205,7 @@ in 1.5M messages in **ipdr_input** and 500K (aggregation) in **ipdr_output**.
 
 ![img_18.png](snapshots/img_18.png)
 
-## Volume Tests Summary Results with 10M, 20M, 30M, 40M and 50M IPDR messages
+## Volume Tests Summary Results with 10M, 20M, 30M, 40M and 50M IPDR input messages
 
 Flink command to run IPDR Streaming job with the window size of 1 hour and checkpoint interval 30 sec.
 ```
