@@ -50,7 +50,7 @@ A load test of this code processed data from 500,000 distinct Mac addresses with
 /usr/java/jdk1.8.0_232-cloudera/bin/java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 100000 0 400000   > load5.out 2>&1  &
 ```
 
-![img_14.png](img_14.png)
+![img_14.png](snapshots/img_14.png)
 
 
 ## Sample IPDR input Message Format:
@@ -113,11 +113,11 @@ Then IPDR data generator ran 3 times and inserted a total of 30 messages, as sho
 java -cp IPDRProducer.jar data.generator.IPDRDataProducer pnovokshonov-1.pnovokshonov.root.hwx.site:9092 ipdr_input 10  1000 0
 ```
 
-![img_2.png](img_2.png)
+![img_2.png](snapshots/img_2.png)
 
 Once the next checkpoint occured, the checkpoint path was captured from the Flink UI below. The Flink job was cancelled.
 
-![img_3.png](img_3.png)
+![img_3.png](snapshots/img_3.png)
 
 With no Flink job running, IPDR data generator ran 2 more times adding another 20 messages into the **ipdr_input** Kafka topic.
 
@@ -130,15 +130,15 @@ flink run -d -p 1 -ys 1 -ytm 1500 -ynm StreamingJob -s hdfs:/user/flink/checkpoi
 Once the Flink job restarted, it was observed in Flink UI that 20 messages have been processed. Those messages came through when Flink application 
 was down.
 
-![img_4.png](img_4.png)
+![img_4.png](snapshots/img_4.png)
 
 IPDR data generator ran one more time and added 10 more messages in the **ipdr_input** Kafka topic. This was also reflected in the Flink UI.
 
-![img_5.png](img_5.png)
+![img_5.png](snapshots/img_5.png)
 
 Once the Tumbling Window expired, a total of 60 IPDR messages have been processed and aggregation results written into  **ipdr_output** topic.
 
-![img_6.png](img_6.png)
+![img_6.png](snapshots/img_6.png)
 
 As was demonstrated in this test, Flink recovers from faults by rewinding and replaying the source data streams.
 
@@ -149,46 +149,46 @@ with the size of a Tumbling Window of 5 minutes and a checkpoint interval of 30 
 
 Flink Task manager was running on node #5, as shown on the Flink UI below.
 
-![img_7.png](img_7.png)
+![img_7.png](snapshots/img_7.png)
 
 IPDR data generator ran and inserted 10 IPDR messages while at the same time Flink's Task Manager processes have been identified and 
 killed on node #5 of the cluster.
 
-![img_11.png](img_11.png)
+![img_11.png](snapshots/img_11.png)
 
 Flink Web UI briefly highlighted running processors in red and the Task Manager restarted on node #3.
 
-![img_12.png](img_12.png)
+![img_12.png](snapshots/img_12.png)
 
-![img_9.png](img_9.png)
+![img_9.png](snapshots/img_9.png)
 
 IPDR data generator ran again insterting 10 messages while Flin Task Manager was killed on node #3. This time Task Manager restarted 
 on the same node #3.
 
-![img_10.png](img_10.png)
+![img_10.png](snapshots/img_10.png)
 
 IPDR data generator ran 2 more times and aggregation results have been written in the target **ipdr_output** topic upon a Tumbling Window
 expiration. All 4 IPDR runs aggregated successfully despite several Task Manager restarts.
 
-![img_13.png](img_13.png)
+![img_13.png](snapshots/img_13.png)
 
 ## Restarting IPDR Job from checkpoint during a Load Test
 
 Restarting Task Manager 2 times during a Load Test with loading 500,000 IPDR messages with distinct mac addresses produced correct aggregation results. Exception
 errors caused by Task Manager restarts on nodes #1 and #3 are shown in screenshot below.
 
-![img_15.png](img_15.png)
+![img_15.png](snapshots/img_15.png)
 
 Checkpoint stats during a Load Test during a Load Test are shown below.
 
-![img_16.png](img_16.png)
+![img_16.png](snapshots/img_16.png)
 
 Input and output Kafka topics stats are presented below. A total of 3 iterations of IPDR loads with 500,000 messages each ran over an hour which resulted
 in 1.5M messages in **ipdr_input** and 500K (aggregation) in **ipdr_output**.
 
-![img_17.png](img_17.png)
+![img_17.png](snapshots/img_17.png)
 
-![img_18.png](img_18.png)
+![img_18.png](snapshots/img_18.png)
 
 ## Volume Tests Summary Results with 10M, 20M, 30M, 40M and 50M IPDR messages
 
@@ -206,9 +206,9 @@ flink run -d -p 5 -ys 1 -ytm 3000 -ynm StreamingJob target/IPDRStreamingFlink.ja
 
 CPU Usage reaches 100% on the source task manager while reading messages from the input topic. Writing results to the ipdr_output table takes less than 1 -2 M.
 
-![img_24.png](img_24.png)
+![img_24.png](snapshots/img_24.png)
 
-![img_25.png](img_25.png)
+![img_25.png](snapshots/img_25.png)
 
 ## Testing with EventTime instead of ProcessingTime
 
